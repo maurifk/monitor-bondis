@@ -51,12 +51,10 @@ export default class extends Controller {
       
       // Esperar un momento para asegurar que el DOM esté listo y que Leaflet haya inicializado
       setTimeout(() => {
-        console.log('Map initialized, checking for buses data')
         // Intentar leer del elemento map-data primero (más confiable)
         this.readFromMapData()
         // También intentar usar busesValue si está disponible
         if (this.busesValue && this.busesValue.length > 0) {
-          console.log('Using busesValue from data attribute')
           this.updateMarkers(this.busesValue)
         }
       }, 300)
@@ -86,13 +84,12 @@ export default class extends Controller {
     if (jsonScript) {
       try {
         const buses = JSON.parse(jsonScript.textContent)
-        console.log('readFromMapData: parsed buses from script', buses?.length || 0)
         if (buses && buses.length > 0) {
           this.updateMarkers(buses)
           return
         }
       } catch (e) {
-        console.error('Error parsing buses from script:', e)
+        // Error al parsear buses del script
       }
     }
     
@@ -100,35 +97,24 @@ export default class extends Controller {
     const mapDataElement = document.getElementById('map-data')
     if (mapDataElement) {
       const busesValue = mapDataElement.getAttribute('data-map-buses-value')
-      console.log('readFromMapData: raw attribute value length:', busesValue?.length || 0)
       
       if (busesValue && busesValue.trim() !== '' && busesValue !== '[]') {
         try {
           const buses = JSON.parse(busesValue)
-          console.log('readFromMapData: parsed buses from attribute', buses?.length || 0)
           if (buses && buses.length > 0) {
             this.updateMarkers(buses)
-          } else {
-            console.log('readFromMapData: buses array is empty')
           }
         } catch (e) {
-          console.error('Error parsing buses from attribute:', e)
+          // Error al parsear buses del atributo
         }
-      } else {
-        console.log('readFromMapData: busesValue is empty or invalid:', busesValue)
       }
-    } else {
-      console.log('readFromMapData: map-data element not found')
     }
   }
   
   handleMapUpdate(event) {
-    console.log('handleMapUpdate called', event.detail)
     if (event.detail && event.detail.buses) {
       // updateMarkers ya verifica si el mapa está inicializado
       this.updateMarkers(event.detail.buses)
-    } else {
-      console.warn('handleMapUpdate: missing buses in event detail')
     }
   }
 
@@ -162,11 +148,8 @@ export default class extends Controller {
   }
 
   updateMarkers(buses = null) {
-    console.log('updateMarkers called', { buses, hasMap: !!this.map, mapInitialized: !!this.map })
-    
     // Verificar que el mapa esté inicializado
     if (!this.map) {
-      console.warn('Map not initialized, cannot update markers')
       // Intentar inicializar si el contenedor existe
       if (this.containerTarget) {
         this.connect()
@@ -185,8 +168,6 @@ export default class extends Controller {
       buses = this.busesValue
     }
     
-    console.log('Updating markers with buses:', buses?.length || 0)
-    
     // Limpiar marcadores anteriores
     this.markers.forEach(marker => {
       if (this.map) {
@@ -196,7 +177,6 @@ export default class extends Controller {
     this.markers = []
     
     if (!buses || buses.length === 0) {
-      console.log('No buses to display')
       return
     }
     
@@ -210,7 +190,6 @@ export default class extends Controller {
         
         // Validar coordenadas
         if (isNaN(lat) || isNaN(lng)) {
-          console.warn('Invalid coordinates for bus', bus.busId, { lat, lng })
           return
         }
         
@@ -228,17 +207,17 @@ export default class extends Controller {
             color: white;
             border: 3px solid white;
             border-radius: 50%;
-            width: 45px;
-            height: 45px;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 12px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.4);
             cursor: pointer;
           ">${bus.line}</div>`,
-          iconSize: [45, 45],
+          iconSize: [35, 35],
           iconAnchor: [22.5, 22.5]
         })
         
@@ -246,7 +225,6 @@ export default class extends Controller {
           const marker = L.marker([lat, lng], { icon: labelIcon, zIndexOffset: 1000 })
             .addTo(this.map)
           
-          console.log("*************")
           const fixedTimestamp = bus.timestamp.replace(/(\.\d{3})([-+]\d{2})$/, '$1$2:00');
           const actualizado = new Date(fixedTimestamp).toLocaleTimeString('en-GB', { 
             hour: '2-digit', 
@@ -254,7 +232,6 @@ export default class extends Controller {
             second: '2-digit',
             hour12: false 
           });
-          console.log('Bus timestamp:', bus.timestamp, 'Formatted:', actualizado)
 
           // Crear popup con información del bus
           const popupContent = `
@@ -274,14 +251,10 @@ export default class extends Controller {
           this.markers.push(marker)
           markersCreated++
         } catch (e) {
-          console.error('Error creating marker for bus', bus.busId, e)
+          // Error al crear marcador
         }
-      } else {
-        console.warn('Bus missing location data', bus.busId, { location })
       }
     })
-    
-    console.log(`Created ${markersCreated} markers out of ${buses.length} buses`)
     
     // Ajustar vista del mapa para mostrar todos los buses
     if (this.markers.length > 0 && this.map) {
@@ -289,7 +262,7 @@ export default class extends Controller {
         const group = new L.featureGroup(this.markers)
         this.map.fitBounds(group.getBounds().pad(0.1))
       } catch (e) {
-        console.error('Error fitting bounds:', e)
+        // Error al ajustar vista del mapa
       }
     }
   }

@@ -91,7 +91,6 @@ export default class extends Controller {
       Turbo.renderStreamMessage(html)
     })
     .catch(error => {
-      console.error("Error:", error)
       this.statusTarget.innerHTML = '<p class="text-red-600">❌ Error al buscar buses</p>'
     })
   }
