@@ -1,0 +1,51 @@
+<% content_for :title, "Monitor de Bondis" %>
+
+<div class="w-full max-w-4xl mx-auto" data-controller="bus-search">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold mb-4">🚌 Monitor de Bondis</h1>
+    
+    <% if @error %>
+      <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <p><strong>⚠️ Error:</strong> <%= @error %></p>
+        <p class="text-sm mt-2">Crea un archivo .env en la raíz del proyecto con tus credenciales.</p>
+      </div>
+    <% end %>
+    
+    <div class="mb-4">
+      <label for="line-input" class="block text-sm font-medium text-gray-700 mb-2">
+        Buscar línea de bondis
+      </label>
+      <input 
+        id="line-input"
+        type="text" 
+        data-bus-search-target="input"
+        data-action="input->bus-search#search"
+        value="<%= @line %>"
+        placeholder="Ej: 21, 526, D10, L20..."
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+        autofocus
+      />
+    </div>
+    
+    <div id="status" data-bus-search-target="status" class="mb-4"></div>
+  </div>
+
+  <div class="mb-6">
+    <div 
+      data-controller="map" 
+      data-map-buses-value='<%= j(@buses.to_json) %>'
+      data-map-target="container"
+      id="map"
+      class="w-full h-[500px] border border-gray-300 rounded-lg shadow-lg"
+    ></div>
+    <div 
+      id="map-data" 
+      data-map-buses-value='<%= raw @buses.to_json.gsub("'", "&#39;") %>'
+      style="display: none;"
+    ></div>
+  </div>
+
+  <div data-bus-search-target="results" id="buses-results">
+    <%= render partial: "buses_list", locals: { buses: @buses, line: @line } %>
+  </div>
+</div>

@@ -1,0 +1,77 @@
+<div class="mt-6">
+  <% if line.present? %>
+    <h2 class="text-2xl font-semibold mb-4">
+      Bondis de la línea <%= line %>
+      <% if buses.any? %>
+        <span class="text-lg font-normal text-gray-600">(<%= buses.length %> bondi<%= buses.length > 1 ? 's' : '' %>)</span>
+      <% end %>
+    </h2>
+
+    <% if buses.empty? %>
+      <div class="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-yellow-800">⚠️ No se encontraron bondis para la línea <%= line %></p>
+        <p class="text-sm text-yellow-700 mt-2">Intenta con otro número de línea</p>
+      </div>
+    <% else %>
+      <div class="space-y-3">
+        <% buses.each do |bus| %>
+          <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <div>
+                    <h3 class="text-lg font-semibold">
+                      Línea <%= bus["line"] %> - Bondi #<%= bus["busId"] %>
+                    </h3>
+                    <p class="text-sm text-gray-600">
+                      <%= bus["company"] || bus["companyName"] || "N/A" %>
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm">
+                  <div>
+                    <span class="font-medium text-gray-700">Origen:</span>
+                    <span class="ml-2"><%= bus["origin"] || "N/A" %></span>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-700">Destino:</span>
+                    <span class="ml-2"><%= bus["destination"] || "N/A" %></span>
+                  </div>
+                  <% if bus["subline"].present? %>
+                    <div class="md:col-span-2">
+                      <span class="font-medium text-gray-700">Sublinea:</span>
+                      <span class="ml-2 text-gray-600"><%= bus["subline"] %></span>
+                    </div>
+                  <% end %>
+                </div>
+
+                <div class="flex gap-4 mt-3 text-sm">
+                  <% if bus["speed"].present? %>
+                    <div>
+                      <span class="font-medium text-gray-700">Velocidad:</span>
+                      <span class="ml-2"><%= bus["speed"] %> km/h</span>
+                    </div>
+                  <% end %>
+                  <% if bus["timestamp"].present? %>
+                    <div>
+                      <span class="font-medium text-gray-700">Actualizado:</span>
+                      <span class="ml-2">
+                        <%= Time.parse(bus["timestamp"]).strftime("%H:%M:%S") %>
+                      </span>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg text-center">
+      <p class="text-gray-600">Ingresa un número de línea para buscar bondis</p>
+    </div>
+  <% end %>
+</div>
+

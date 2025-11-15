@@ -1,0 +1,71 @@
+<%= turbo_stream.update "buses-results" do %>
+  <%= render partial: "buses_list", locals: { buses: @buses, line: @line } %>
+<% end %>
+
+<%= turbo_stream.update "map-data" do %>
+  <script type="application/json" id="map-data-json"><%= raw @buses.to_json %></script>
+  <div 
+    id="map-data" 
+    data-map-buses-value='[]'
+    style="display: none;"
+  ></div>
+<% end %>
+
+<%= turbo_stream.update "status" do %>
+  <% if @line.present? %>
+    <% if @buses.any? %>
+      <p class="text-green-600">✓ <%= @buses.length %> bondi<%= @buses.length > 1 ? 's' : '' %> encontrado<%= @buses.length > 1 ? 's' : '' %> - Actualizado: <%= Time.now.strftime("%H:%M:%S") %></p>
+    <% else %>
+      <p class="text-yellow-600">⚠️ No se encontraron bondis para la línea <%= @line %></p>
+    <% end %>
+  <% else %>
+    <p></p>
+  <% end %>
+<% end %>
+
+<script>
+  // Disparar evento para actualizar el mapa
+  (function() {
+    setTimeout(() => {
+      // Intentar leer del script JSON primero
+      const jsonScript = document.getElementById('map-data-json');
+      if (jsonScript) {
+        try {
+          const buses = JSON.parse(jsonScript.textContent);
+          console.log('Turbo Stream script: parsed', buses.length, 'buses from script');
+          // Disparar evento personalizado con los datos de los buses
+          const event = new CustomEvent('map:update', { 
+            detail: { buses: buses },
+            bubbles: true 
+          });
+          document.dispatchEvent(event);
+          console.log('Map update event dispatched with', buses.length, 'buses');
+          return;
+        } catch (e) {
+          console.error('Error parsing buses from script in Turbo Stream:', e);
+        }
+      }
+      
+      // Fallback: leer del atributo
+      const mapDataElement = document.getElementById('map-data');
+      if (mapDataElement) {
+        const busesValue = mapDataElement.getAttribute('data-map-buses-value');
+        if (busesValue && busesValue.trim() !== '' && busesValue !== '[]') {
+          try {
+            const buses = JSON.parse(busesValue);
+            console.log('Turbo Stream script: parsed', buses.length, 'buses from attribute');
+            const event = new CustomEvent('map:update', { 
+              detail: { buses: buses },
+              bubbles: true 
+            });
+            document.dispatchEvent(event);
+          } catch (e) {
+            console.error('Error parsing buses from attribute:', e);
+          }
+        }
+      }
+    }, 200);
+  })();
+</script>
+
+
