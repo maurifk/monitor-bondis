@@ -1,0 +1,138 @@
+<div class="max-w-6xl mx-auto py-8 px-4">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold">Dashboard de Tracking</h1>
+      <p class="text-gray-600 mt-2">
+        <strong>Parada:</strong> <%= @bus_stop.full_name %> (ID: <%= @bus_stop.busstop_id %>)
+      </p>
+    </div>
+    <div class="flex flex-col gap-4 justify-end">
+      <%= link_to "Volver", tracking_index_path, class: "bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700" %>
+      <%= button_to "Detener Tracking", 
+          stop_tracking_path(bus_stop_id: @bus_stop.id),
+          method: :post,
+          class: "bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700",
+          data: { confirm: "¿Detener el tracking?" } %>
+    </div>
+  </div>
+
+  <% if @stop_tracking %>
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm font-semibold text-green-800">✅ Tracking Activo</p>
+          <p class="text-xs text-green-700 mt-1">
+            Líneas: <%= @stop_tracking.lines_display %> | 
+            Variantes: <%= @stop_tracking.variants_display %>
+          </p>
+          <p class="text-xs text-green-600 mt-1">
+            Iniciado: <%= time_ago_in_words(@stop_tracking.started_at) %> atrás
+            <% if @stop_tracking.last_job_run_at %>
+              | Última consulta: <%= time_ago_in_words(@stop_tracking.last_job_run_at) %> atrás
+            <% end %>
+          </p>
+        </div>
+        <div class="text-green-600">
+          <svg class="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <p class="text-sm text-yellow-800">
+        ⚠️ No hay tracking activo para esta parada
+      </p>
+    </div>
+  <% end %>
+
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <p class="text-sm text-blue-800">
+      🔄 Esta página se actualiza automáticamente cada 10 segundos
+    </p>
+  </div>
+
+  <div id="bus-list" class="space-y-4">
+    <% if @active_trackings.any? %>
+      <% @active_trackings.group_by(&:line).each do |line, trackings| %>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-gray-800 text-white px-6 py-3">
+            <h2 class="text-xl font-bold">Línea <%= line %></h2>
+          </div>
+          
+          <div class="divide-y">
+            <% trackings.each do |tracking| %>
+              <div class="p-6">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-4 mb-2 flex-wrap">
+                      <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        Bus #<%= tracking.bus_id %>
+                      </span>
+                      <% if tracking.line_variant_id %>
+                        <span class="text-sm text-gray-600">
+                          Variante: <%= tracking.line_variant_id %>
+                        </span>
+                      <% end %>
+                      <%= tracking_status_badge(tracking) %>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                      <div>
+                        <p class="text-xs text-gray-500 uppercase">Distancia</p>
+                        <p class="text-lg font-semibold">
+                          <%= distance_display(tracking.distance_to_stop) %>
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p class="text-xs text-gray-500 uppercase">Velocidad promedio</p>
+                        <p class="text-lg font-semibold">
+                          <%= speed_display(tracking.speed) %>
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p class="text-xs text-gray-500 uppercase">Llegada estimada</p>
+                        <p class="text-lg font-semibold">
+                          <%= eta_display(tracking) %>
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p class="text-xs text-gray-500 uppercase">Posiciones</p>
+                        <p class="text-lg font-semibold">
+                          <%= tracking.bus_positions.count %>/30
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-t border-gray-200">
+                      <p class="text-xs text-gray-500">
+                        Última actualización: <%= time_ago_in_words(tracking.last_seen_at) %> atrás
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+        <p class="text-yellow-800">
+          No hay buses siendo trackeados en este momento. El sistema está esperando que aparezcan buses de las líneas configuradas.
+        </p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Auto-refresh every 10 seconds
+  setTimeout(() => {
+    window.location.reload();
+  }, 10000);
+</script>

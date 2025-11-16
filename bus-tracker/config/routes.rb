@@ -12,4 +12,10 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "buses#index"
   resources :buses, only: [ :index, :show ]
+  
+  # Bus tracking routes
+  get "tracking", to: "tracking#index", as: :tracking_index
+  get "tracking/dashboard", to: "tracking#dashboard", as: :tracking_dashboard
+  post "tracking/start", to: "tracking#start_tracking", as: :start_tracking
+  post "tracking/stop", to: "tracking#stop_tracking", as: :stop_tracking
 end

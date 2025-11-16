@@ -1,0 +1,76 @@
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6">Bus Tracking System</h1>
+  
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Iniciar Tracking de Parada</h2>
+    
+    <%= form_with url: start_tracking_path, method: :post, class: "space-y-4" do |f| %>
+      <div>
+        <%= f.label :bus_stop_id, "Seleccionar Parada", class: "block text-sm font-medium mb-2" %>
+        <%= f.select :bus_stop_id, 
+            @bus_stops.map { |stop| ["#{stop.full_name} (ID: #{stop.busstop_id})", stop.id] },
+            { prompt: "Selecciona una parada" },
+            class: "w-full border border-gray-300 rounded-md px-3 py-2" %>
+      </div>
+      
+      <div>
+        <%= f.label :lines, "Líneas a Monitorear (separadas por coma)", class: "block text-sm font-medium mb-2" %>
+        <%= f.text_field :lines, 
+            placeholder: "Ej: 147, 148, 149",
+            class: "w-full border border-gray-300 rounded-md px-3 py-2" %>
+        <p class="text-xs text-gray-500 mt-1">Ingresa los números de línea separados por comas</p>
+      </div>
+      
+      <div>
+        <%= f.label :line_variant_ids, "IDs de Variantes (opcional, separadas por coma)", class: "block text-sm font-medium mb-2" %>
+        <%= f.text_field :line_variant_ids, 
+            placeholder: "Ej: 4420, 4424, 4426",
+            class: "w-full border border-gray-300 rounded-md px-3 py-2" %>
+        <p class="text-xs text-gray-500 mt-1">Deja vacío para todas las variantes</p>
+      </div>
+      
+      <div>
+        <%= f.submit "Iniciar Tracking", class: "bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+  
+  <div class="bg-gray-100 rounded-lg p-6">
+    <h2 class="text-xl font-semibold mb-4">Paradas con Tracking Activo</h2>
+    <% active_stop_trackings = StopTracking.active.includes(:bus_stop).order(started_at: :desc) %>
+    
+    <% if active_stop_trackings.any? %>
+      <div class="space-y-3">
+        <% active_stop_trackings.each do |st| %>
+          <div class="bg-white rounded-md p-4 flex justify-between items-center">
+            <div>
+              <p class="font-medium"><%= st.bus_stop.full_name %></p>
+              <p class="text-sm text-gray-600">ID: <%= st.bus_stop.busstop_id %></p>
+              <p class="text-sm text-gray-600">
+                Líneas: <%= st.lines_display %> | Variantes: <%= st.variants_display %>
+              </p>
+              <p class="text-xs text-gray-500 mt-1">
+                Iniciado <%= time_ago_in_words(st.started_at) %> atrás
+                <% if st.last_job_run_at %>
+                  • Última actualización <%= time_ago_in_words(st.last_job_run_at) %> atrás
+                <% end %>
+              </p>
+            </div>
+            <div class="space-x-2">
+              <%= link_to "Ver Dashboard", 
+                  tracking_dashboard_path(bus_stop_id: st.bus_stop.id),
+                  class: "bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700" %>
+              <%= button_to "Detener", 
+                  stop_tracking_path(bus_stop_id: st.bus_stop.id),
+                  method: :post,
+                  class: "bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700",
+                  data: { confirm: "¿Estás seguro de detener el tracking?" } %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-600">No hay paradas con tracking activo</p>
+    <% end %>
+  </div>
+</div>
