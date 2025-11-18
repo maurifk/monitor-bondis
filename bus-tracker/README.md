@@ -9,12 +9,16 @@ Aplicación Rails para visualizar en tiempo real la ubicación de los buses de u
 - 🔄 Actualización automática cada 15 segundos
 - 📱 Diseño responsive con Tailwind CSS
 - 🎯 Filtrado por línea de bus
+- 🚏 Búsqueda de paradas y visualización de ómnibus aproximándose
+- ⏱️ Estimación de tiempos de llegada usando OSRM (rutas reales)
+- 📍 Cálculo inteligente de próxima parada por segmentos
 
 ## Requisitos
 
 - Ruby 3.3.2 o superior
 - PostgreSQL (o cambiar a SQLite3 en `config/database.yml`)
 - Credenciales de la API de STM (CLIENT_ID y CLIENT_SECRET)
+- **Docker Desktop** (opcional, para servidor OSRM local)
 
 ## Instalación
 
@@ -36,9 +40,10 @@ Aplicación Rails para visualizar en tiempo real la ubicación de los buses de u
    ```
    
    Edita el archivo `.env` y agrega tus credenciales:
-   ```
+   ```env
    CLIENT_ID=tu_client_id
    CLIENT_SECRET=tu_client_secret
+   OSRM_URL=http://localhost:5555
    ```
    
    Puedes obtener tus credenciales en: https://www.montevideo.gub.uy/aplicacionesWeb/api
@@ -49,25 +54,58 @@ Aplicación Rails para visualizar en tiempo real la ubicación de los buses de u
    rails db:migrate
    ```
 
-5. **Iniciar el servidor:**
+5. **(Opcional) Configurar servidor OSRM local:**
+   
+   Para mejor rendimiento y sin límites de consultas, configura un servidor OSRM local:
+   
+   ```bash
+   # Desde el directorio raíz del proyecto (no bus-tracker/)
+   cd ..
+   ./setup-osrm.sh    # Configuración inicial (solo una vez)
+   ./start-osrm.sh    # Inicia el servidor OSRM
+   ```
+   
+   Ver instrucciones completas en: [OSRM_SETUP.md](../OSRM_SETUP.md)
+   
+   Si prefieres usar el servidor público, cambia en `.env`:
+   ```env
+   OSRM_URL=https://router.project-osrm.org
+   ```
+
+6. **Iniciar el servidor Rails:**
    ```bash
    rails server
    ```
 
-6. **Abrir en el navegador:**
+7. **Abrir en el navegador:**
    ```
    http://localhost:3000
    ```
 
 ## Uso
 
+### Buscar por Línea
+
 1. Ingresa el número de línea que deseas monitorear (por ejemplo: 21, 526, D10, etc.)
 2. Haz clic en "Buscar" o presiona Enter
 3. Los buses aparecerán como marcadores azules en el mapa
-4. Haz clic en un marcador para ver detalles del bus
-5. Haz clic en una tarjeta de bus en la lista para centrar el mapa en ese bus
-6. El mapa se actualiza automáticamente cada 15 segundos
-7. Usa el botón "🔄 Actualizar" para actualizar manualmente
+4. Cada bus muestra su **próxima parada** estimada
+5. Haz clic en un marcador para ver detalles del bus
+6. Haz clic en una tarjeta de bus en la lista para centrar el mapa en ese bus
+7. El mapa se actualiza automáticamente cada 15 segundos
+8. Usa el botón "🔄 Actualizar" para actualizar manualmente
+
+### Buscar por Parada
+
+1. Ve a "Buscar Parada" en el menú
+2. Busca una parada por nombre de calle o ID
+3. Selecciona la parada deseada
+4. Verás todos los ómnibus que van hacia esa parada con:
+   - ⏱️ **Tiempo estimado de llegada** (en minutos)
+   - 🕐 Hora estimada de llegada
+   - 📏 Distancia total a recorrer
+   - 📍 Próxima parada del ómnibus
+5. Los ómnibus están ordenados por cercanía (el más próximo primero)
 
 ## Estructura del Proyecto
 
@@ -99,12 +137,22 @@ bus-tracker/
 - **Tailwind CSS** - Framework CSS
 - **HTTParty** - Cliente HTTP
 - **dotenv-rails** - Manejo de variables de entorno
+- **OSRM** - Motor de enrutamiento para cálculo de tiempos de llegada
+- **Docker** - Contenedores para servidor OSRM local
+
+## Documentación Adicional
+
+- **[STOPS_FEATURE.md](../STOPS_FEATURE.md)** - Documentación completa de la funcionalidad de paradas
+- **[OSRM_SETUP.md](../OSRM_SETUP.md)** - Guía detallada para configurar OSRM local
+- **[ARRIVAL_ESTIMATION_EXAMPLE.md](../ARRIVAL_ESTIMATION_EXAMPLE.md)** - Ejemplos de cómo funciona la estimación de tiempos
 
 ## Notas
 
 - El token OAuth2 se renueva automáticamente 30 segundos antes de expirar
 - Los marcadores se actualizan cada 15 segundos automáticamente
 - El mapa se centra automáticamente para mostrar todos los buses visibles
+- Los tiempos de llegada se calculan usando rutas reales de calles (no distancia directa)
+- El algoritmo de próxima parada usa distancia perpendicular a segmentos para mayor precisión
 
 ## Licencia
 

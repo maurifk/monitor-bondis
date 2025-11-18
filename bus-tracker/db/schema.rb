@@ -64,8 +64,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_16_054311) do
 
   create_table "bus_stops", force: :cascade do |t|
     t.integer "busstop_id", null: false
-    t.string "street1", null: false
-    t.string "street2", null: false
+    t.string "street1"
+    t.string "street2"
     t.integer "street1_id"
     t.integer "street2_id"
     t.decimal "latitude", precision: 10, scale: 8, null: false

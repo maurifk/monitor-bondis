@@ -209,3 +209,10 @@ __marimo__/
 /bus-tracker/tmp
 /bus-tracker/app/assets/builds
 /bus-tracker/log
+
+# OSRM generated files
+*.osrm
+*.osrm.*
+uruguay-*.osm.pbf
+
+datos_stm.csv

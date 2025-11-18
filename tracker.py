@@ -159,6 +159,9 @@ def registrar_pasadas_por_proximidad():
     
     try:
         # Buscar o crear la parada en la base de datos
+        paradas = obtener_paradas()
+        for parada in paradas:
+            BusStop.find_or_create_from_api(session, parada)
         bus_stop = session.query(BusStop).filter_by(busstop_id=MONITORED_STOP_ID).first()
         
         if not bus_stop:
@@ -167,6 +170,8 @@ def registrar_pasadas_por_proximidad():
             
             paradas = obtener_paradas()
             if paradas:
+                # Guardar todas las paradas en la base de datos
+                paradas.each(lambda p: BusStop.find_or_create_from_api(session, p))
                 parada_data = next((p for p in paradas if p.get("busstopId") == MONITORED_STOP_ID), None)
                 if parada_data:
                     bus_stop = BusStop.find_or_create_from_api(session, parada_data)

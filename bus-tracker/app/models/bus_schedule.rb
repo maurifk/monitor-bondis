@@ -13,8 +13,10 @@ class BusSchedule < ApplicationRecord
   scope :for_day_type, ->(day_type) { where(day_type: day_type) }
   scope :at_stop, ->(bus_stop_id) { where(bus_stop_id: bus_stop_id) }
   scope :for_variant, ->(variant_id) { where(line_variant_id: variant_id) }
+  scope :for_frequency, ->(freq_int) { where(frequency: freq_int) }
   scope :after_time, ->(time_int) { where("scheduled_time >= ?", time_int) }
   scope :ordered_by_time, -> { order(:scheduled_time) }
+  scope :ordered_by_ordinal, -> { order(:ordinal) }
 
   def scheduled_time_formatted
     time_str = scheduled_time.to_s.rjust(3, "0")

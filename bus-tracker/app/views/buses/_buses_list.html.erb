@@ -46,6 +46,13 @@
                   <% end %>
                 </div>
 
+                <% if bus["next_stop"].present? %>
+                  <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                    <span class="font-medium text-blue-900">📍 Próxima parada:</span>
+                    <span class="ml-2 text-blue-800"><%= bus["next_stop"]["name"] %></span>
+                  </div>
+                <% end %>
+
                 <div class="flex gap-4 mt-3 text-sm">
                   <% if bus["speed"].present? %>
                     <div>

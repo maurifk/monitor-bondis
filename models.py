@@ -12,8 +12,8 @@ class BusStop(Base):
 
     id = Column(Integer, primary_key=True)
     busstop_id = Column(Integer, nullable=False, unique=True, index=True)
-    street1 = Column(String, nullable=False)
-    street2 = Column(String, nullable=False)
+    street1 = Column(String)
+    street2 = Column(String)
     street1_id = Column(Integer)
     street2_id = Column(Integer)
     latitude = Column(Numeric(10, 8), nullable=False)
@@ -37,8 +37,8 @@ class BusStop(Base):
             coordinates = data.get("location", {}).get("coordinates", [])
             stop = cls(
                 busstop_id=busstop_id,
-                street1=data.get("street1"),
-                street2=data.get("street2"),
+                street1=data.get("street1") or "SIN NOMBRE",
+                street2=data.get("street2") or "SIN DENOMINACIÓN",
                 street1_id=data.get("street1Id"),
                 street2_id=data.get("street2Id"),
                 latitude=coordinates[1] if len(coordinates) > 1 else None,

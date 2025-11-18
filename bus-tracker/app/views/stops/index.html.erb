@@ -1,0 +1,72 @@
+<% content_for :title, "Buscar Parada" %>
+
+<div class="w-full max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold mb-4">🚏 Buscar Parada</h1>
+    
+    <div class="mb-4">
+      <label for="stop-input" class="block text-sm font-medium text-gray-700 mb-2">
+        Buscar parada por calle o ID
+      </label>
+      <%= form_with url: stops_path, method: :get, local: true, class: "flex gap-2" do |f| %>
+        <%= f.text_field :query, 
+            value: @query,
+            placeholder: "Ej: 18 de Julio, Bulevar Artigas, 1234...",
+            class: "flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg",
+            autofocus: true %>
+        <%= f.submit "Buscar", class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @query.present? %>
+    <div class="mb-6">
+      <h2 class="text-2xl font-semibold mb-4">
+        Resultados de búsqueda
+        <% if @stops.any? %>
+          <span class="text-lg font-normal text-gray-600">(<%= @stops.length %> parada<%= @stops.length > 1 ? 's' : '' %>)</span>
+        <% end %>
+      </h2>
+
+      <% if @stops.empty? %>
+        <div class="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p class="text-yellow-800">⚠️ No se encontraron paradas con "<%= @query %>"</p>
+          <p class="text-sm text-yellow-700 mt-2">Intenta con otro término de búsqueda</p>
+        </div>
+      <% else %>
+        <div class="space-y-2">
+          <% @stops.each do |stop| %>
+            <%= link_to stop_path(stop.busstop_id), class: "block p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-blue-300 transition-all" do %>
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    <%= stop.full_name %>
+                  </h3>
+                  <p class="text-sm text-gray-600 mt-1">
+                    ID: <%= stop.busstop_id %>
+                  </p>
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    <% stop.line_variants.map(&:line_number).uniq.sort.each do |line| %>
+                      <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                        <%= line %>
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="ml-4 text-blue-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg text-center">
+      <p class="text-gray-600">Ingresa el nombre de una calle o ID de parada para comenzar</p>
+    </div>
+  <% end %>
+</div>

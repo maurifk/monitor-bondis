@@ -9,10 +9,43 @@ class BusesController < ApplicationController
       @error = "CLIENT_ID o CLIENT_SECRET no están configurados. Por favor, configura el archivo .env"
     end
 
+    # Enriquecer datos de buses con información de siguiente parada
+    if @buses.any?
+      @buses = enrich_buses_with_next_stop(@buses)
+    end
+
     respond_to do |format|
       format.html
       format.turbo_stream
     end
+  end
+
+  private
+
+  def enrich_buses_with_next_stop(buses)
+    buses.map do |bus|
+      # Buscar la variante correspondiente
+      variant = find_variant_for_bus(bus)
+      
+      if variant && bus["location"] && bus["location"]["coordinates"]
+        longitude = bus["location"]["coordinates"][0]
+        latitude = bus["location"]["coordinates"][1]
+        
+        next_stop = variant.estimate_next_stop(latitude, longitude)
+        bus["next_stop"] = next_stop ? {
+          "name" => next_stop.full_name,
+          "id" => next_stop.busstop_id
+        } : nil
+      end
+      
+      bus
+    end
+  end
+
+  def find_variant_for_bus(bus)
+    return nil unless bus["lineVariantId"]
+    
+    LineVariant.find_by(api_line_variant_id: bus["lineVariantId"])
   end
 
   def show

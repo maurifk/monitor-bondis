@@ -1,0 +1,124 @@
+<% content_for :title, "Parada: #{@stop.full_name}" %>
+
+<div class="w-full max-w-4xl mx-auto">
+  <div class="mb-6">
+    <%= link_to stops_path, class: "text-blue-600 hover:text-blue-800 mb-4 inline-flex items-center" do %>
+      <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Volver a búsqueda
+    <% end %>
+    
+    <h1 class="text-3xl font-bold mb-2">🚏 <%= @stop.full_name %></h1>
+    <p class="text-gray-600">ID: <%= @stop.busstop_id %></p>
+    
+    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <p class="text-sm text-gray-700">
+        <strong>Ubicación:</strong> <%= @stop.latitude %>, <%= @stop.longitude %>
+      </p>
+      <p class="text-sm text-gray-700 mt-1">
+        <strong>Líneas que pasan:</strong>
+        <%= @variants.map(&:line_number).uniq.sort.join(', ') %>
+      </p>
+    </div>
+  </div>
+
+  <div class="mb-6">
+    <h2 class="text-2xl font-semibold mb-4">
+      🚌 Bondis aproximándose
+      <% if @approaching_buses.any? %>
+        <span class="text-lg font-normal text-gray-600">(<%= @approaching_buses.length %> bondi<%= @approaching_buses.length > 1 ? 's' : '' %>)</span>
+      <% end %>
+    </h2>
+
+    <% if @approaching_buses.empty? %>
+      <div class="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-yellow-800">⚠️ No hay bondis aproximándose a esta parada en este momento</p>
+        <p class="text-sm text-yellow-700 mt-2">
+          Los bondis listados son solo aquellos cuya próxima parada aún no ha pasado por esta ubicación.
+        </p>
+      </div>
+    <% else %>
+      <div class="space-y-3">
+        <% @approaching_buses.each do |approaching| %>
+          <% bus = approaching[:bus] %>
+          <% variant = approaching[:variant] %>
+          <% next_stop = approaching[:next_stop] %>
+          <% arrival = approaching[:arrival_estimate] %>
+          
+          <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-semibold">
+                      Línea <%= bus["line"] %> - Bondi #<%= bus["busId"] %>
+                    </h3>
+                    <p class="text-sm text-gray-600">
+                      <%= bus["company"] || bus["companyName"] || "N/A" %>
+                    </p>
+                  </div>
+                  <% if arrival.present? %>
+                    <div class="text-right">
+                      <div class="text-2xl font-bold text-blue-600">
+                        <%= arrival[:duration_minutes] %> min
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        <%= arrival[:estimated_arrival].strftime("%H:%M") %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm">
+                  <div>
+                    <span class="font-medium text-gray-700">Origen:</span>
+                    <span class="ml-2"><%= bus["origin"] || "N/A" %></span>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-700">Destino:</span>
+                    <span class="ml-2"><%= bus["destination"] || "N/A" %></span>
+                  </div>
+                </div>
+
+                <div class="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                  <span class="font-medium text-green-900">📍 Próxima parada:</span>
+                  <span class="ml-2 text-green-800"><%= next_stop.full_name %></span>
+                  <% if next_stop.busstop_id == @stop.busstop_id %>
+                    <span class="ml-2 px-2 py-0.5 bg-green-600 text-white text-xs font-bold rounded">
+                      ¡Esta parada!
+                    </span>
+                  <% end %>
+                </div>
+
+                <% if arrival.present? %>
+                  <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                    <span class="font-medium text-blue-900">🚗 Distancia:</span>
+                    <span class="ml-2 text-blue-800"><%= arrival[:distance_km] %> km</span>
+                  </div>
+                <% end %>
+
+                <div class="flex gap-4 mt-3 text-sm">
+                  <% if bus["speed"].present? %>
+                    <div>
+                      <span class="font-medium text-gray-700">Velocidad:</span>
+                      <span class="ml-2"><%= bus["speed"] %> km/h</span>
+                    </div>
+                  <% end %>
+                  <% if bus["timestamp"].present? %>
+                    <div>
+                      <span class="font-medium text-gray-700">Actualizado:</span>
+                      <span class="ml-2">
+                        <%= Time.parse(bus["timestamp"]).strftime("%H:%M:%S") %>
+                      </span>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
